@@ -10,11 +10,9 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer
 
 @EnableAutoConfiguration
 @ComponentScan
-@EnableResourceServer
 class AuthApplication {
     private val logger: Logger = LoggerFactory.getLogger(AuthApplication::class.java)
 
