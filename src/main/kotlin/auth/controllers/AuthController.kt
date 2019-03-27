@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -22,10 +23,11 @@ class AuthController(val environment: Environment) {
     }
 
     @RequestMapping("/oauth/token_proxy",
+        consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
         produces = [MediaType.APPLICATION_JSON_UTF8_VALUE],
         method = [RequestMethod.POST]
     )
-    fun tokenProxy(@RequestBody body: TokenProxyRequestBody): String {
+    fun tokenProxy(@RequestBody body: MultiValueMap<String, String>): String {
         val clientId = environment.getProperty("rcheung.oauth2.client.id") ?: ""
         val secret = environment.getProperty("rcheung.oauth2.client.secret") ?: ""
         val tokenUrl = environment.getProperty("security.oauth2.client.access-token-uri") ?: ""
@@ -33,8 +35,10 @@ class AuthController(val environment: Environment) {
         val headers = HttpHeaders()
         headers.setBasicAuth(clientId, secret)
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
-        val code = body.code
-        val entity = HttpEntity("grant_type=authorization_code&code=$code", headers)
+        val grantType = body["grant_type"]?.first()
+        val code = body["code"]?.first()
+        val redirectUri = body["redirect_uri"]?.first()
+        val entity = HttpEntity("grant_type=$grantType&code=$code&redirect_uri=$redirectUri", headers)
 
         val restTpl = RestTemplate()
         return try {
