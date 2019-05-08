@@ -11,10 +11,14 @@ spring:
     url: jdbc:h2:file:~/test
     username: sa
     driver-class-name: org.h2.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            scope: openid,profile,https://www.googleapis.com/auth/spreadsheets
 security:
   oauth2:
     client:
       access-token-uri: http://localhost:8080/oauth/token
       user-authorization-uri: http://localhost:8080/oauth/authorize
-    resource:
-      user-info-uri: http://localhost:8080/user/me

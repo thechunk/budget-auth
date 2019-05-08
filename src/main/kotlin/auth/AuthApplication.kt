@@ -18,10 +18,12 @@ class AuthApplication {
 
     @Bean
     fun demo(repository: UserRepository, encoder: PasswordEncoder) = CommandLineRunner {
-        repository.save(User(
-            username = "user",
-            password = encoder.encode("password")
-        ))
+        repository.save(
+            User(
+                username = "user",
+                password = encoder.encode("password")
+            )
+        )
         repository.findAll().forEach { logger.debug(it.username) }
     }
 }

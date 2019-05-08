@@ -1,24 +1,32 @@
 package auth.controllers
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.util.MultiValueMap
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.security.Principal
-import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
+import auth.repositories.UserRepository
 
 @RestController
-class AuthController(val environment: Environment) {
-    @RequestMapping("/user/me")
-    fun user(principal: Principal) : Principal {
+class AuthController(val environment: Environment, val authorizedClientService: OAuth2AuthorizedClientService, val repository: UserRepository) {
+    @RequestMapping("/me")
+    fun user(principal: OAuth2Authentication) : Principal {
+        val authToken = principal.userAuthentication
+        if (authToken is OAuth2AuthenticationToken) {
+            val clientToken = authorizedClientService.loadAuthorizedClient<OAuth2AuthorizedClient>(
+                authToken.authorizedClientRegistrationId, authToken.name
+            )
+        }
+        val user = repository.findByUsername(principal.name)
         return principal
     }
 
@@ -53,8 +61,4 @@ class AuthController(val environment: Environment) {
             e.responseBodyAsString
         }
     }
-
-    data class TokenProxyRequestBody @JsonCreator constructor(
-        val code: String
-    )
 }

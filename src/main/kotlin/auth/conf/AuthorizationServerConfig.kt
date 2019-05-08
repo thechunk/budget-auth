@@ -32,7 +32,7 @@ class AuthorizationServerConfig(val encoder : PasswordEncoder, val authenticatio
             .withClient(environment.getProperty("rcheung.oauth2.client.id"))
             .secret(encoder.encode(environment.getProperty("rcheung.oauth2.client.secret")))
             .authorizedGrantTypes("password", "authorization_code", "refresh_token")
-            .scopes("read", "write", "user_info")
+            .scopes("read", "write")
             .redirectUris(environment.getProperty("rcheung.oauth2.client.redirect-uris"))
     }
 

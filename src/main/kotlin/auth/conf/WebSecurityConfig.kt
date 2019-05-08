@@ -1,5 +1,6 @@
 package auth.conf
 
+import auth.classes.GoogleOidcUserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -13,23 +14,32 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 
 @Configuration
 @Import(AuthBeans::class)
-@Order(1)
-class WebSecurityConfiguration(val encoder : PasswordEncoder, val userDetailsService: UserDetailsService)
-    : WebSecurityConfigurerAdapter() {
+@Order(4)
+class WebSecurityConfig(val encoder : PasswordEncoder,
+                        val userDetailsService: UserDetailsService,
+                        val googleOidcUserService: GoogleOidcUserService
+) : WebSecurityConfigurerAdapter() {
     override fun configure(web: WebSecurity) {
+        web.debug(true)
         web.ignoring()
             .antMatchers("/h2-console/**")
     }
 
     override fun configure(http: HttpSecurity) {
-          http.authorizeRequests()
-                  .antMatchers("/login").permitAll()
-              .and()
-                  .formLogin()
-              .and().csrf().disable()
+        http.authorizeRequests()
+            .antMatchers("/oauth/token_proxy")
+            .permitAll()
+            .anyRequest().authenticated()
+            .and().formLogin()
+            .and().oauth2Login()
+            .userInfoEndpoint()
+            .userService(DefaultOAuth2UserService())
+            .oidcUserService(googleOidcUserService)
+          http.csrf().disable()
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
