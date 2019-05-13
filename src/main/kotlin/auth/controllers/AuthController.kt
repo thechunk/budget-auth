@@ -1,5 +1,7 @@
 package auth.controllers
 
+import common.entities.UserInfo
+import common.entities.UserTokens
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -11,7 +13,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import auth.repositories.UserRepository
@@ -19,15 +20,19 @@ import auth.repositories.UserRepository
 @RestController
 class AuthController(val environment: Environment, val authorizedClientService: OAuth2AuthorizedClientService, val repository: UserRepository) {
     @RequestMapping("/me")
-    fun user(principal: OAuth2Authentication) : Principal {
+    fun user(principal: OAuth2Authentication) : UserInfo {
+        var userInfo = UserInfo(sub = principal.name, name = principal.name)
         val authToken = principal.userAuthentication
         if (authToken is OAuth2AuthenticationToken) {
             val clientToken = authorizedClientService.loadAuthorizedClient<OAuth2AuthorizedClient>(
                 authToken.authorizedClientRegistrationId, authToken.name
             )
+            val tokens = UserTokens(google = clientToken.accessToken.tokenValue)
+            userInfo = UserInfo(sub = principal.name, name = principal.name, tokens = tokens)
         }
-        val user = repository.findByUsername(principal.name)
-        return principal
+
+//        val user = repository.findByUsername(principal.name)
+        return userInfo
     }
 
     @RequestMapping("/oauth/token_proxy",
