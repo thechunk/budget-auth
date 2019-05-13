@@ -13,12 +13,6 @@ import common.constants.Auth
 class GoogleOidcUserService(private val repository: UserRepository) : OidcUserService() {
     override fun loadUser(userRequest: OidcUserRequest?): OidcUser {
         val oidcUser = super.loadUser(userRequest)
-//        val subject = oidcUser.subject
-//        val localUser = try {
-//            repository.findByGoogleId(subject)
-//        } catch(e: EmptyResultDataAccessException) {
-//            repository.save(User(username = subject, googleId = subject))
-//        }
 
         val authorities = hashSetOf(
             GrantedAuthority { "read" },

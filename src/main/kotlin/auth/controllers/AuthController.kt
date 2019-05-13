@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import auth.repositories.UserRepository
+import common.entities.ClientTokens
 
 @RestController
-class AuthController(val environment: Environment, val authorizedClientService: OAuth2AuthorizedClientService, val repository: UserRepository) {
+class AuthController(val environment: Environment, val authorizedClientService: OAuth2AuthorizedClientService) {
     @RequestMapping("/me")
     fun user(principal: OAuth2Authentication) : UserInfo {
         var userInfo = UserInfo(sub = principal.name, name = principal.name)
@@ -27,11 +28,14 @@ class AuthController(val environment: Environment, val authorizedClientService: 
             val clientToken = authorizedClientService.loadAuthorizedClient<OAuth2AuthorizedClient>(
                 authToken.authorizedClientRegistrationId, authToken.name
             )
-            val tokens = UserTokens(google = clientToken.accessToken.tokenValue)
+            val tokens = UserTokens(google = ClientTokens(
+                accessToken = clientToken.accessToken.tokenValue,
+                expiresAt = clientToken.accessToken.expiresAt,
+                refreshToken = clientToken.refreshToken?.tokenValue ?: ""
+            ))
             userInfo = UserInfo(sub = principal.name, name = principal.name, tokens = tokens)
         }
 
-//        val user = repository.findByUsername(principal.name)
         return userInfo
     }
 
